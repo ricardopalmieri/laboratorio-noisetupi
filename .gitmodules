@@ -1,0 +1,4 @@
+[submodule "apps/nt-video-content-tool"]
+	path = apps/nt-video-content-tool
+	url = https://github.com/ricardopalmieri/NT_VideoContentTool.git
+	branch = main

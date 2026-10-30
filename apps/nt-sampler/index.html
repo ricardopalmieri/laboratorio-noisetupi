@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1">
+  <meta name="theme-color" content="#050607">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NT Sampler">
+  <meta name="format-detection" content="telephone=no">
+  <title>NT Sampler 2.8.0</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/app-icon.png">
+  <link rel="stylesheet" href="styles.css?v=280">
+</head>
+<body>
+  <main id="app" class="app-shell" aria-live="polite"></main>
+  <div id="portrait-lock" class="portrait-lock">
+    <img src="assets/noisetupi-logo.png" alt="Noisetupi">
+    <strong>GIRE O IPAD</strong>
+    <span>NT Sampler 2.8.0 foi desenhado para performance em landscape.</span>
+  </div>
+  <input id="local-audio-input" class="visually-hidden" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.webm" multiple>
+  <input id="local-folder-input" class="visually-hidden" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.webm" webkitdirectory directory multiple>
+  <input id="project-input" class="visually-hidden" type="file" accept=".ntsampler,application/json,.json">
+  <script src="app.js?v=280" defer></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NT Sampler MIDI Diagnostic</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#050607;color:#eee;margin:0;padding:20px}button{font-size:18px;padding:14px 18px;background:#ef3340;color:#fff;border:0;border-radius:6px}pre{white-space:pre-wrap;background:#111418;border:1px solid #323940;padding:14px;min-height:160px;font-size:14px;line-height:1.45}.ok{color:#6eff9b}.bad{color:#ff7878}
+</style>
+</head>
+<body>
+<h1>NT SAMPLER · MIDI DIAGNOSTIC</h1>
+<p>Abra esta página dentro do Web MIDI Browser e toque no botão.</p>
+<button id="test">TEST MIDI</button>
+<pre id="log">READY</pre>
+<script>
+const log=document.querySelector('#log');
+const write=(s)=>{log.textContent+=`\n${s}`};
+function portsToArray(collection){
+  if(!collection)return [];
+  const out=[],seen=new Set(),push=p=>{if(!p||seen.has(p))return;seen.add(p);out.push(p)};
+  try{if(typeof collection.forEach==='function')collection.forEach((a,b)=>{const looks=x=>x&&typeof x==='object'&&('name' in x||'id' in x||'type' in x||'onmidimessage' in x);push(looks(a)?a:looks(b)?b:null)})}catch(e){write('forEach error: '+e)}
+  if(out.length)return out;
+  try{if(typeof collection.values==='function'){const v=collection.values();if(v){if(typeof Symbol!=='undefined'&&Symbol.iterator&&typeof v[Symbol.iterator]==='function'){for(const p of v)push(p)}else if(typeof v.next==='function'){for(let s=v.next(),n=0;s&&!s.done&&n<256;s=v.next(),n++)push(s.value)}}}}catch(e){write('values error: '+e)}
+  if(out.length)return out;
+  try{if(typeof collection.length==='number')for(let i=0;i<collection.length;i++)push(collection[i])}catch(e){}
+  try{for(const k of Object.keys(collection)){const p=collection[k];if(p&&typeof p==='object')push(p)}}catch(e){}
+  return out;
+}
+async function requestMidi(){
+  const fn=navigator.requestMIDIAccess||navigator.webkitRequestMIDIAccess||navigator.mozRequestMIDIAccess;
+  write('UA: '+navigator.userAgent);
+  write('secureContext: '+String(window.isSecureContext));
+  write('requestMIDIAccess: '+typeof fn);
+  if(!fn)throw new Error('Web MIDI API/bridge não foi injetada neste browser');
+  let access;
+  try{access=await fn.call(navigator,{sysex:false})}catch(e){write('options request failed: '+e);access=await fn.call(navigator)}
+  const inputs=portsToArray(access&&access.inputs);
+  write('inputs: '+inputs.length);
+  inputs.forEach((p,i)=>{write(`[${i}] ${p.manufacturer||''} ${p.name||''} id=${p.id||'(sem id)'} state=${p.state||''}`);const handler=e=>write('MIDI '+Array.from(e.data||[]).join(' '));try{if(typeof p.addEventListener==='function')p.addEventListener('midimessage',handler);else p.onmidimessage=handler}catch(e){write('handler error: '+e)}});
+  if(!inputs.length)write('Nenhuma porta apareceu no MIDIAccess. Confirme a conexão na tela inicial do Web MIDI Browser e teste novamente.');
+}
+document.querySelector('#test').addEventListener('click',async()=>{log.textContent='TESTING...';try{await requestMidi();write('DONE')}catch(e){write('ERROR: '+(e&&e.message||e))}});
+</script>
+</body>
+</html>

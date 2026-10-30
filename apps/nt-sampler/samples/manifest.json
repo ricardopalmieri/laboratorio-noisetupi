@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "id": "nt-drone",
+      "name": "nt-drone.wav",
+      "url": "samples/nt-drone.wav",
+      "size": 240078
+    },
+    {
+      "id": "nt-glass",
+      "name": "nt-glass.wav",
+      "url": "samples/nt-glass.wav",
+      "size": 143118
+    },
+    {
+      "id": "nt-kick",
+      "name": "nt-kick.wav",
+      "url": "samples/nt-kick.wav",
+      "size": 96078
+    },
+    {
+      "id": "nt-pulse",
+      "name": "nt-pulse.wav",
+      "url": "samples/nt-pulse.wav",
+      "size": 144078
+    }
+  ]
+}

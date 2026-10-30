@@ -1,0 +1,18 @@
+Options -Indexes
+
+<IfModule mod_headers.c>
+  # Web MIDI / audio permissions for browsers that honor Permissions-Policy.
+  # The iOS Web MIDI Browser uses an injected bridge, but this also keeps Chromium deployments explicit.
+  Header always set Permissions-Policy "midi=(self), microphone=(self), speaker-selection=(self)"
+  <Files "api.php">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  </Files>
+
+  <FilesMatch "^(index\.html|app\.js|styles\.css|service-worker\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+  </FilesMatch>
+
+  <FilesMatch "\.(wav|mp3|m4a|aac|flac|ogg|opus|webm)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>

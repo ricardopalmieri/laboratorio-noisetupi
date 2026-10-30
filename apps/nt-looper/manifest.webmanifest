@@ -1,0 +1,19 @@
+{
+  "name": "NT Looper",
+  "short_name": "NT Looper",
+  "description": "Looper de mesa da linha Laboratório Noisetupi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0c0b",
+  "theme_color": "#0b0c0b",
+  "icons": [
+    {
+      "src": "assets/img/logo-simple.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+# ============================================================
+# Zine Maker — configuração Apache (Hostinger)
+# Cabeçalhos de segurança + HTTPS forçado + cache
+# ============================================================
+
+# --- Força HTTPS ---
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# --- Cabeçalhos de segurança ---
+<IfModule mod_headers.c>
+  # Impede que o site seja embutido em iframe de outro domínio (clickjacking)
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # Impede o navegador de "adivinhar" tipos de arquivo (MIME sniffing)
+  Header always set X-Content-Type-Options "nosniff"
+  # Não vaza a URL de origem para outros sites
+  Header always set Referrer-Policy "no-referrer"
+  # Desliga APIs sensíveis que o app não usa
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), usb=(), payment=()"
+  # HSTS: só HTTPS por 1 ano (ativar depois de confirmar que o HTTPS funciona)
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  # Content-Security-Policy incluindo frame-ancestors (só funciona via header, não via meta)
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+</IfModule>
+
+# --- Bloqueia acesso a arquivos sensíveis ---
+<FilesMatch "(^\.|\.(json|md|bak|log|zip)$)">
+  Require all denied
+</FilesMatch>
+# (libera favicon/manifest se você adicionar depois)
+
+# --- Impede listagem de diretórios ---
+Options -Indexes
+
+# --- Cache do navegador ---
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# --- Compressão ---
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml
+</IfModule>
+
+# --- Página de erro simples ---
+ErrorDocument 404 /index.html

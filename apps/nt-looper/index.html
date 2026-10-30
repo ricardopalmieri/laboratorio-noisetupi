@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0c0b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="assets/img/logo-simple.png">
+  <link rel="apple-touch-icon" href="assets/img/logo-simple.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <title>NT LOOPER</title>
+</head>
+<body>
+  <section id="boot-screen">
+    <img class="boot-logo" src="assets/img/logo-noisetupi.png" alt="Noisetupi">
+    <div class="boot-title">NT <span>LOOPER</span></div>
+    <div class="boot-status" id="boot-status" aria-live="polite"></div>
+    <button class="boot-start" id="boot-start-btn">INICIAR</button>
+  </section>
+
+  <div id="app" hidden>
+    <header class="deck-head">
+      <div class="brand">
+        <img src="assets/img/logo-simple.png" alt="">
+        <span>NT LOOPER</span>
+      </div>
+
+      <div class="deck-controls">
+        <section class="control-block tempo-block">
+          <span class="control-label">TEMPO</span>
+          <div class="bpm-row">
+            <button class="square-btn" data-bpm-step="-1">−</button>
+            <input id="bpm-input" class="bpm-input" type="number" min="40" max="240" value="120" inputmode="numeric">
+            <button class="square-btn" data-bpm-step="1">+</button>
+            <button class="tap-btn" id="btn-tap">TAP</button>
+          </div>
+        </section>
+
+        <section class="control-block">
+          <span class="control-label">QUANTIZE</span>
+          <div class="segmented" id="quantize-select">
+            <button class="seg-opt active" data-quantize="OFF">FREE</button>
+            <button class="seg-opt" data-quantize="BEAT">BEAT</button>
+            <button class="seg-opt" data-quantize="MEASURE">BAR</button>
+          </div>
+        </section>
+
+        <section class="control-block">
+          <span class="control-label">LENGTH</span>
+          <div class="segmented" id="reclen-select">
+            <button class="seg-opt active" data-reclen="FREE">FREE</button>
+            <button class="seg-opt" data-reclen="1">1</button>
+            <button class="seg-opt" data-reclen="2">2</button>
+            <button class="seg-opt" data-reclen="4">4</button>
+            <button class="seg-opt" data-reclen="8">8</button>
+          </div>
+        </section>
+
+        <section class="control-block transport-block">
+          <button class="deck-btn play-all" id="btn-play-all">▶ ALL</button>
+          <button class="deck-btn" id="btn-stop-all">■ ALL</button>
+        </section>
+
+        <section class="control-block click-block">
+          <span class="control-label">CLICK</span>
+          <div class="inline-control">
+            <button class="deck-btn" id="btn-metro">ON</button>
+            <input id="metro-level" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Volume do click">
+          </div>
+        </section>
+
+        <section class="control-block fx-bank-block">
+          <span class="control-label">FX BANKS</span>
+          <div class="inline-control tight">
+            <button class="deck-btn fx-toggle" id="btn-global-infx-toggle">INPUT</button>
+            <button class="mini-edit" id="btn-global-infx-edit" aria-label="Editar Input FX">SET</button>
+            <button class="deck-btn fx-toggle" id="btn-all-outfx-toggle">TRACK</button>
+            <button class="deck-btn" id="btn-master-fx-edit">MASTER</button>
+          </div>
+        </section>
+
+        <section class="control-block sampler-block">
+          <span class="control-label">SAMPLER</span>
+          <div class="inline-control">
+            <button class="deck-btn" id="btn-open-sampler">PADS</button>
+            <input id="sampler-master-gain" type="range" min="0" max="1.5" step="0.01" value="0.9" aria-label="Volume do sampler">
+          </div>
+        </section>
+
+        <section class="control-block master-block">
+          <span class="control-label">MASTER</span>
+          <div class="inline-control">
+            <input id="master-gain" type="range" min="0" max="1.5" step="0.01" value="0.86" aria-label="Volume master">
+            <div class="meter mini"><div class="meter-fill" id="master-meter-fill"></div></div>
+            <button class="deck-btn" id="btn-master-rec">REC MIX</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="head-actions">
+        <span class="io-light" id="audio-status-dot"></span>
+        <button class="settings-btn" id="btn-fullscreen" aria-label="Tela cheia">⤢</button>
+        <button class="settings-btn" id="btn-open-settings" aria-label="Configurações">⚙</button>
+      </div>
+    </header>
+
+    <main class="channels" id="channels-container"></main>
+    <footer class="statusbar"><span id="footer-msg">PRONTO</span><span>V2.10 · CHROME</span></footer>
+  </div>
+
+  <aside class="learn-toolbar" id="learn-toolbar" hidden aria-live="polite">
+    <strong id="learn-mode-label">MIDI LEARN</strong>
+    <span id="learn-target-status">SELECT CONTROL</span>
+    <div class="learn-toolbar-actions">
+      <button id="btn-learn-pads" type="button">PADS</button>
+      <button id="btn-learn-remove" type="button">REMOVE</button>
+      <button id="btn-learn-done" type="button">DONE</button>
+    </div>
+  </aside>
+
+  <div class="modal-overlay" id="modal-settings" hidden>
+    <section class="modal settings-modal">
+      <header class="modal-head"><span>SETTINGS</span><button class="modal-close" data-close>×</button></header>
+      <nav class="modal-tabs">
+        <button class="tab-btn active" data-tab="tab-io">AUDIO I/O</button>
+        <button class="tab-btn" data-tab="tab-input">INPUT</button>
+        <button class="tab-btn" data-tab="tab-midi">MIDI</button>
+        <button class="tab-btn" data-tab="tab-general">GENERAL</button>
+      </nav>
+
+      <div class="tab-panel active" id="tab-io">
+        <label for="select-audio-input">AUDIO INPUT</label>
+        <select id="select-audio-input"></select>
+        <label for="select-audio-output">AUDIO OUTPUT</label>
+        <select id="select-audio-output"></select>
+        <div class="static-value hint" id="audio-output-hint" hidden>Este navegador não permite escolher a saída de áudio por app. No iPad, use o Centro de Controle (ou AirPlay) para rotear para a interface. A UMC404HD costuma virar a saída do sistema automaticamente ao ser conectada.</div>
+        <div class="modal-button-row">
+          <button class="modal-action" id="btn-refresh-devices">REFRESH</button>
+          <button class="modal-action primary" id="btn-arm-input">CONNECT</button>
+        </div>
+        <label>REC ISOLATION</label>
+        <div class="segmented" id="isolation-select">
+          <button class="seg-opt active" data-isolation="DIRECT">DIRECT</button>
+          <button class="seg-opt" data-isolation="AEC">AEC</button>
+        </div>
+        <label>AUDIO BUFFER</label>
+        <div class="segmented" id="audio-buffer-select">
+          <button class="seg-opt active" data-buffer="LOW">REALTIME</button>
+          <button class="seg-opt" data-buffer="BALANCED">BALANCED</button>
+          <button class="seg-opt" data-buffer="SAFE">SAFE</button>
+        </div>
+        <label>SAMPLE RATE</label>
+        <div class="segmented" id="audio-samplerate-select">
+          <button class="seg-opt active" data-samplerate="AUTO">AUTO</button>
+          <button class="seg-opt" data-samplerate="44100">44.1 kHz</button>
+          <button class="seg-opt" data-samplerate="48000">48 kHz</button>
+        </div>
+        <div class="static-value" id="audio-diagnostics">48 kHz · DSP LIGHT</div>
+        <div class="static-value hint">Depois de trocar SAMPLE RATE ou AUDIO BUFFER, recarregue o app. Se a UMC404HD estiver travada em 48 kHz, escolha 48 kHz aqui para evitar troca de clock no meio do uso.</div>
+      </div>
+
+      <div class="tab-panel" id="tab-input">
+        <label for="in-trim-db">GLOBAL INPUT GAIN</label>
+        <div class="param-row"><input id="in-trim-db" type="range" min="-12" max="36" step="0.5" value="12"><output id="in-trim-value">+12 dB</output></div>
+        <label for="in-lowcut">LOW CUT</label>
+        <div class="param-row"><input id="in-lowcut" type="range" min="20" max="220" step="1" value="55"><output id="in-lowcut-value">55 Hz</output></div>
+        <label for="in-bright">PRESENCE / AIR</label>
+        <div class="param-row"><input id="in-bright" type="range" min="-6" max="12" step="0.5" value="0"><output id="in-bright-value">0 dB</output></div>
+      </div>
+
+      <div class="tab-panel" id="tab-midi">
+        <label for="select-midi-input">MIDI INPUT</label>
+        <select id="select-midi-input"></select>
+        <div class="modal-button-row">
+          <button class="modal-action primary" id="btn-midi-learn-toggle">MIDI LEARN</button>
+          <button class="modal-action danger" id="btn-midi-clear">CLEAR MAP</button>
+        </div>
+        <div class="midi-status" id="midi-learn-status">OFF</div>
+        <div class="midi-map-list" id="midi-map-list"></div>
+        <label>PC KEYBOARD</label>
+        <div class="modal-button-row">
+          <button class="modal-action primary" id="btn-keyboard-learn-toggle">KEYBOARD LEARN</button>
+          <button class="modal-action danger" id="btn-keyboard-clear">CLEAR KEYS</button>
+        </div>
+        <div class="midi-status" id="keyboard-learn-status">OFF</div>
+        <div class="midi-map-list" id="keyboard-map-list"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-general">
+        <label>REC MODE</label>
+        <div class="segmented" id="mode-select">
+          <button class="seg-opt active" data-mode="REC_PLAY_OVER">REC › PLAY › DUB</button>
+          <button class="seg-opt" data-mode="REC_OVER_PLAY">REC › DUB › PLAY</button>
+        </div>
+        <label for="tail-duration">STOP TAIL</label>
+        <div class="param-row"><input id="tail-duration" type="range" min="0" max="8" step="0.1" value="2.2"><output id="tail-duration-value">2.2 s</output></div>
+        <button class="modal-action active" id="btn-tail-toggle">TAIL ON</button>
+        <label>SETUP</label>
+        <div class="modal-button-row">
+          <button class="modal-action primary" id="btn-save-setup">SAVE SETUP</button>
+          <button class="modal-action" id="btn-load-setup">LOAD SETUP</button>
+        </div>
+        <label for="template-select">TEMPLATE</label>
+        <select id="template-select"></select>
+        <div class="modal-button-row">
+          <button class="modal-action" id="btn-apply-template">APPLY TEMPLATE</button>
+          <button class="modal-action" id="btn-export-preset">EXPORT PRESET</button>
+          <button class="modal-action" id="btn-import-preset">IMPORT PRESET</button>
+        </div>
+        <label>SESSION</label>
+        <div class="modal-button-row wrap">
+          <button class="modal-action primary" id="btn-save-project">SAVE PROJECT</button>
+          <button class="modal-action" id="btn-open-project">OPEN PROJECT</button>
+          <button class="modal-action" id="btn-export-all">EXPORT ALL WAV</button>
+        </div>
+        <div class="static-value">3:00 · 3 LAYERS · 5 TRACKS</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="modal-track" hidden>
+    <section class="modal track-modal">
+      <header class="modal-head"><span id="track-modal-title">TRACK 1</span><button class="modal-close" data-close>×</button></header>
+      <nav class="modal-tabs">
+        <button class="tab-btn active" data-track-tab="track-tab-config">TRACK</button>
+        <button class="tab-btn" data-track-tab="track-tab-sample">SAMPLE</button>
+      </nav>
+
+      <div class="tab-panel active" id="track-tab-config">
+        <label for="track-input-gain">INPUT GAIN</label>
+        <div class="param-row"><input id="track-input-gain" type="range" min="-18" max="24" step="0.5" value="0"><output id="track-input-gain-value">0 dB</output></div>
+        <div class="gain-guide" aria-hidden="true"><span>-18</span><span>-12</span><span>-6</span><span>0</span><span>+6</span><span>+12</span><span>+18</span><span>+24</span></div>
+        <div class="input-level-strip"><span>INPUT</span><div class="meter horizontal"><div class="meter-fill" id="track-modal-input-fill"></div></div><output id="track-modal-input-value">-∞ dB</output></div>
+        <label>INPUT EQ</label>
+        <div class="triple-params">
+          <div><input id="eq-low" type="range" min="-18" max="18" step="0.5" value="0"><output id="eq-low-value">0</output><span>LOW</span></div>
+          <div><input id="eq-mid" type="range" min="-18" max="18" step="0.5" value="0"><output id="eq-mid-value">0</output><span>MID</span></div>
+          <div><input id="eq-high" type="range" min="-18" max="18" step="0.5" value="0"><output id="eq-high-value">0</output><span>HIGH</span></div>
+        </div>
+        <label for="track-pan">PAN</label>
+        <div class="param-row"><input id="track-pan" type="range" min="-1" max="1" step="0.01" value="0"><output id="track-pan-value">C</output></div>
+        <div class="modal-button-row">
+          <button class="modal-action" id="btn-track-reverse">REVERSE OFF</button>
+          <button class="modal-action" id="btn-edit-track-input-fx">INPUT FX</button>
+          <button class="modal-action" id="btn-edit-track-output-fx">TRACK FX</button>
+        </div>
+        <label>COPY FX CHAIN</label>
+        <div class="modal-button-row two">
+          <button class="modal-action" id="btn-copy-in-to-out">INPUT → TRACK</button>
+          <button class="modal-action" id="btn-copy-out-to-in">TRACK → INPUT</button>
+        </div>
+        <label>COPY TRACK SETUP</label>
+        <div class="copy-track-row"><select id="copy-track-target"></select><button class="modal-action" id="btn-copy-track">COPY</button></div>
+      </div>
+
+      <div class="tab-panel" id="track-tab-sample">
+        <div class="trim-wave"><canvas id="trim-wave-canvas"></canvas></div>
+        <label for="trim-in">IN</label>
+        <div class="param-row"><input id="trim-in" type="range" min="0" max="1" step="0.001" value="0"><output id="trim-in-value">0:00.000</output></div>
+        <label for="trim-out">OUT</label>
+        <div class="param-row"><input id="trim-out" type="range" min="0" max="1" step="0.001" value="1"><output id="trim-out-value">0:00.000</output></div>
+        <div class="sample-length" id="trim-length">0:00.000</div>
+        <div class="modal-button-row">
+          <button class="modal-action" id="btn-import-track">IMPORT AUDIO</button>
+          <button class="modal-action" id="btn-reset-trim">RESET TRIM</button>
+          <button class="modal-action primary" id="btn-download-track">DOWNLOAD WAV</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay modal-over-modal" id="modal-rack" hidden>
+    <section class="modal rack-modal">
+      <header class="modal-head"><span id="rack-title">INPUT FX</span><button class="modal-close" data-close>×</button></header>
+      <div class="rack-master-row">
+        <button class="modal-action" id="rack-enable">FX ON</button>
+        <div class="param-row compact"><input id="rack-intensity" type="range" min="0" max="1" step="0.01" value="1"><output id="rack-intensity-value">100%</output></div>
+      </div>
+      <div class="fx-chain-list" id="fx-chain-list"></div>
+      <div class="fx-status-legend"><span class="status-stable">DSP STABLE</span></div>
+      <button class="modal-action primary" id="btn-add-fx">+ ADD FX</button>
+      <div class="fx-picker" id="fx-add-picker" hidden></div>
+    </section>
+  </div>
+
+  <div class="modal-overlay modal-over-modal" id="modal-fx-params" hidden>
+    <section class="modal fx-modal" role="dialog" aria-modal="true" aria-labelledby="fx-params-title">
+      <header class="modal-head"><span id="fx-params-title">FX</span><button class="modal-close" data-close>×</button></header>
+      <button class="modal-action active" id="btn-fx-bypass">FX ON</button>
+      <div id="fx-params-body"></div>
+      <div class="modal-button-row">
+        <button class="modal-action" id="btn-replace-fx">REPLACE FX</button>
+        <button class="modal-action danger" id="btn-remove-fx">REMOVE FX</button>
+      </div>
+      <div class="fx-picker" id="fx-replace-picker" hidden></div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="modal-sampler" hidden>
+    <section class="modal sampler-modal">
+      <header class="modal-head">
+        <span>SAMPLER</span>
+        <div class="sampler-head-actions">
+          <button class="modal-action" id="btn-sampler-settings">SETTINGS</button>
+          <button class="modal-close" data-close>×</button>
+        </div>
+      </header>
+      <div class="sampler-pad-grid" id="sampler-pad-grid"></div>
+      <section class="sampler-editor" id="sampler-editor" hidden>
+        <header><strong id="sampler-pad-title">PAD 1</strong><span id="sampler-pad-file">EMPTY</span></header>
+        <div class="sampler-wave"><canvas id="sampler-wave-canvas"></canvas></div>
+        <div class="sampler-editor-grid">
+          <div>
+            <label for="sampler-pad-bpm">ORIGINAL BPM</label>
+            <input class="bpm-input sampler-bpm-input" id="sampler-pad-bpm" type="number" min="20" max="400" value="120" inputmode="numeric">
+          </div>
+          <div>
+            <label for="sampler-trim-in">TRIM IN</label>
+            <div class="param-row"><input id="sampler-trim-in" type="range" min="0" max="1" step="0.001" value="0"><output id="sampler-trim-in-value">0:00.000</output></div>
+          </div>
+          <div>
+            <label for="sampler-trim-out">TRIM OUT</label>
+            <div class="param-row"><input id="sampler-trim-out" type="range" min="0" max="1" step="0.001" value="1"><output id="sampler-trim-out-value">0:00.000</output></div>
+          </div>
+          <div>
+            <label for="sampler-pad-volume">PAD VOLUME</label>
+            <div class="param-row"><input id="sampler-pad-volume" type="range" min="0" max="1.5" step="0.01" value="1"><output id="sampler-pad-volume-value">0.0 dB</output></div>
+          </div>
+        </div>
+        <label>DIRECTION</label>
+        <div class="segmented" id="sampler-direction-select">
+          <button class="seg-opt active" data-direction="NORMAL">NORMAL</button>
+          <button class="seg-opt" data-direction="REVERSE">REVERSE</button>
+          <button class="seg-opt" data-direction="PINGPONG">PINGPONG</button>
+        </div>
+        <label>TRIGGER</label>
+        <div class="segmented" id="sampler-trigger-select">
+          <button class="seg-opt" data-trigger="GATE">GATE</button>
+          <button class="seg-opt" data-trigger="TOGGLE">TOGGLE</button>
+          <button class="seg-opt active" data-trigger="PLAY">PLAY</button>
+        </div>
+        <div class="modal-button-row">
+          <button class="modal-action primary" id="btn-sampler-import">IMPORT AUDIO</button>
+          <button class="modal-action danger" id="btn-sampler-clear">CLEAR PAD</button>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <input id="file-import-track" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.opus,.webm,.flac" hidden>
+  <input id="file-import-pad" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.opus,.webm,.flac" hidden>
+  <input id="file-import-preset" type="file" accept="application/json,.json" hidden>
+  <input id="file-open-project" type="file" accept="application/x-ntlooper,.ntloop" hidden>
+
+  <script src="js/session-files.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/sampler.js"></script>
+  <script src="js/audio-engine.js"></script>
+  <script src="js/waveform.js"></script>
+  <script src="js/midi.js"></script>
+  <script src="js/keyboard.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

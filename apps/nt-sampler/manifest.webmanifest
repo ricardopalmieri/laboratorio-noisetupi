@@ -1,0 +1,13 @@
+{
+  "name": "NT Sampler 2.8.0",
+  "short_name": "NT Sampler",
+  "description": "Sampler 16 pads para iPad com FX por pad e master, 99 patterns por Program, sequencer de 64 beats, browser DAW e visual MIDI learn.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050607",
+  "theme_color": "#050607",
+  "orientation": "landscape",
+  "icons": [
+    {"src":"assets/app-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

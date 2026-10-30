@@ -1,0 +1,14 @@
+# dependências e builds
+node_modules/
+dist/
+
+# sessões e exportações de teste
+*.ntloop
+*.ntvct
+*.wav.tmp
+*.log
+
+# sistema
+.DS_Store
+Thumbs.db
+desktop.ini
